@@ -4,7 +4,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class NotesClient {
-	private static int PORT = 9898; // appropriate port#?
+	private static int PORT = 9898; // Port number will be entered by client
 
 	public static void main(String[] args) throws Exception {
 		// System.out.println("Enter the IP address of a machine running the
