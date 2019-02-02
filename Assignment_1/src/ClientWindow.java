@@ -6,8 +6,10 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Arrays;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -42,7 +44,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 	private PrintWriter out;
 
 	/* Variables needed on first connection */
-	private String[] colors = null;
+	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
 
 	public ClientWindow() {
 		setSize(WIDTH, HEIGHT);
@@ -140,9 +142,12 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String errorText = "";
+		String errorText = ""; // error text that may show up. if errortext
+								// exists, no action will be executed
 		String actionCommand = e.getActionCommand();
-		String commandString = "";
+		String commandString = ""; // string to be sent to the server
+		String postColor = "";
+		boolean hasColor = false;
 
 		if (actionCommand == "CONNECT") {
 			if (ipInput.getText().equals("") || portInput.getText().equals("")) {
@@ -168,24 +173,69 @@ public class ClientWindow extends JFrame implements ActionListener {
 				// will be the message
 			} else {
 				String[] postArr = postInput.getText().split(" ");
-				if (postArr.length < 4) {
-					if (postArr[0].matches("[-+]?\\d*\\.?\\d+")) { // if it is a
-																	// number
+				commandString = "POST";
+				try {
+					int boardWidth = Integer.parseInt(postArr[0]);
+					int boardHeight = Integer.parseInt(postArr[1]);
+					commandString += " " + boardWidth + " " + boardHeight;
 
-					}
+				} catch (NumberFormatException nfe) {
+					errorText = "The first two numbers must be integers";
 				}
+
+				if (!(Arrays.asList(this.colors).contains(postArr[2]))) {
+					postColor = this.colors[0];
+				} else {
+					postColor = postArr[2];
+					// Arrays.asList(this.colors).contains(
+				}
+				commandString += " " + postColor;
+				// copy rest of message into the command string
+				String[] message = Arrays.copyOfRange(postArr, 3, postArr.length);
+				for (String m : message) {
+					commandString += " " + m;
+				}
+
 			}
 		}
 
 		if (actionCommand == "GET") {
-			// add if statement to flag error if only one coordinate is filled
-			// out
-			if (colorInput.getText().equals("") && substrInput.getText().equals("") && xInput.getText().equals("")
+			// If all empty
+			if (colorInput.getText().equals("") && substrInput.getText().equals("") & xInput.getText().equals("")
 					&& yInput.getText().equals("")) {
-				errorText = "Please fill in at least one of the requirements";
+				errorText = "Please fill in at least one of the requirements. ";
+
+			} else if ((xInput.getText().equals("") && !yInput.getText().equals(""))
+					|| !xInput.getText().equals("") && yInput.getText().equals("")) {
+				// if x is empty but y is not empty OR if x is not empty but y
+				// is empty
+				errorText += "Please include both coordinates";
+			} else { // at least one is not empty
+				commandString += "GET";
+				// if has color or has refersTo and there have been no errors
+				// from above, then it is a good input
+				if ((!colorInput.getText().equals("")) && errorText.equals("")) {
+
+					hasColor = Arrays.asList(this.colors).contains(colorInput.getText());
+					// only need to see if color is valid because
+					if (hasColor) {
+						// create a string to send to server
+						System.out.println("color is valid");
+						commandString += " color=" + colorInput.getText();
+					}
+				}
+				if (!xInput.getText().equals("") && !yInput.getText().equals("")) {
+					commandString += " contains= " + xInput.getText() + " " + yInput.getText();
+				}
+				if ((!substrInput.getText().equals("")) && errorText.equals("")) {
+					commandString += " refersTo=" + substrInput.getText();
+				}
 
 			}
-			commandString = colorInput.getText() + xInput.getText() + yInput.getText() + substrInput.getText();
+
+			// IF BOTH SUBSTRING AND COLOR INPUT IS EMPTY BUT HAS BOTH
+			// COORDINATES, SEND COORDINATES
+
 		}
 
 		if (actionCommand == "GET PINS")
@@ -205,7 +255,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 			// message Done!
 		}
 
-		// this.textArea.setText(errorText + "\nCommand: " + commandString);
+		this.textArea.setText(errorText + "\nCommand: " + commandString);
 
 	}
 
@@ -228,19 +278,20 @@ public class ClientWindow extends JFrame implements ActionListener {
 	}
 
 	public void connect(String address, int port) throws Exception {
-		// this.socket = new Socket(address, port);
-		// this.in = new BufferedReader(new
-		// InputStreamReader(socket.getInputStream()));
-		// this.out = new PrintWriter(socket.getOutputStream(), true);
-		// String response = in.readLine();
-
-		String response = "800 600 red blue yellow green";
-
-		String displayText;
-		String[] responseArr = response.split(" ");
+		// new socket to conncet to server
+		this.socket = new Socket(address, port);
+		// setting up readers and writers
+		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		this.out = new PrintWriter(socket.getOutputStream(), true);
+		// first line from server should be a string specifying board dimensions
+		// and colors of note
+		String response = in.readLine();
+		String[] responseArr = response.split(" "); // split into array for
+													// easier read
 		this.colors = new String[responseArr.length - 2];
 
-		displayText = "Board Width: " + responseArr[0] + "\nBoard Height: " + responseArr[1] + "\nColors Available: ";
+		String displayText = "Board Width: " + responseArr[0] + "\nBoard Height: " + responseArr[1]
+				+ "\nColors Available: ";
 
 		for (int i = 2; i < responseArr.length; i++) {
 			displayText += responseArr[i] + " ";
