@@ -307,8 +307,13 @@ public class ClientWindow extends JFrame implements ActionListener {
 		// first line from server should be a string specifying board dimensions
 		// and colors of note
 		String response = in.readLine();
-		String[] responseArr = response.split(" "); // split into array for
-													// easier read
+		String[] responseArr = response.split(" "); // split into array string
+
+		// declare array for boardSize {width, height}
+		this.boardSize = new int[2];
+		boardSize[0] = Integer.parseInt(responseArr[0]);
+		boardSize[1] = Integer.parseInt(responseArr[1]);
+		// declare array of colors
 		this.colors = new String[responseArr.length - 2];
 
 		String displayText = "Board Width: " + responseArr[0] + "\nBoard Height: " + responseArr[1]
@@ -316,7 +321,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 		for (int i = 2; i < responseArr.length; i++) {
 			displayText += responseArr[i] + " ";
-			colors[i - 2] = responseArr[i];
+			this.colors[i - 2] = responseArr[i];
 		}
 
 		this.textArea.setText(displayText);
@@ -329,7 +334,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 	}
 
 	public void request(String command) {
-
+		this.out.println(command);
 	}
 
 	public static void main(String[] args) {
