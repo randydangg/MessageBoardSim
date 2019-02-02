@@ -33,7 +33,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 	private JTextField pinyInput = new JTextField(3);
 	private JTextField substrInput = new JTextField(15);
 	private JTextField postInput = new JTextField(20);
-	JTextArea textArea = new JTextArea(5, 20);
+	JTextArea textArea = new JTextArea(10, 30);
 	JScrollPane scrollPane = new JScrollPane(textArea);
 
 	/* Socket API */
@@ -45,6 +45,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 	/* Variables needed on first connection */
 	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
+	private int[] boardSize = { 120, 120 };
 
 	public ClientWindow() {
 		setSize(WIDTH, HEIGHT);
@@ -154,14 +155,19 @@ public class ClientWindow extends JFrame implements ActionListener {
 				errorText = "Please enter port number and ip address";
 			} else {
 				String ipAddress = ipInput.getText();
-				int port = Integer.parseInt(portInput.getText());
+				try {
+					int port = Integer.parseInt(portInput.getText());
+				} catch (NumberFormatException nfe) {
+					errorText = "Please enter an integer for Port Number";
+				}
 				test();
 				// try {
 				// connect(ipAddress, port);
-				// } catch (Exception e1) {
+				// } catch (SocketException e1) {
 				// // TODO Auto-generated catch block
 				// // WORK IN PROGRESS
-				// e1.printStackTrace();
+				// errorString = "Bad Connection. Please try another port or IP
+				// address";
 				// }
 			}
 		}
@@ -173,29 +179,30 @@ public class ClientWindow extends JFrame implements ActionListener {
 				// will be the message
 			} else {
 				String[] postArr = postInput.getText().split(" ");
-				commandString = "POST";
+
 				try {
+					commandString = "POST";
 					int boardWidth = Integer.parseInt(postArr[0]);
 					int boardHeight = Integer.parseInt(postArr[1]);
 					commandString += " " + boardWidth + " " + boardHeight;
+					if (!(Arrays.asList(this.colors).contains(postArr[2]))) {
+						postColor = this.colors[0];
+					} else {
+						postColor = postArr[2];
+						// Arrays.asList(this.colors).contains(
+					}
+					commandString += " " + postColor;
+					// copy rest of message into the command string
+					String[] message = Arrays.copyOfRange(postArr, 3, postArr.length);
+					for (String m : message) {
+						commandString += " " + m;
+					}
+
+					// send command string to server
 
 				} catch (NumberFormatException nfe) {
 					errorText = "The first two numbers must be integers";
 				}
-
-				if (!(Arrays.asList(this.colors).contains(postArr[2]))) {
-					postColor = this.colors[0];
-				} else {
-					postColor = postArr[2];
-					// Arrays.asList(this.colors).contains(
-				}
-				commandString += " " + postColor;
-				// copy rest of message into the command string
-				String[] message = Arrays.copyOfRange(postArr, 3, postArr.length);
-				for (String m : message) {
-					commandString += " " + m;
-				}
-
 			}
 		}
 
@@ -238,23 +245,37 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 		}
 
-		if (actionCommand == "GET PINS")
-
-		{
+		if (actionCommand == "GET PINS") {
 			// grab pins from server
+			commandString = "GET PINS";
+
 		}
 		if (actionCommand == "PIN/UNPIN") {
-			if (ipInput.getText().equals("") || portInput.getText().equals("")) {
-				errorText = "Please enter port number and ip address";
-				System.out.println(e.toString());
+			if (pinxInput.getText().equals("") || pinyInput.getText().equals("")) {
+				errorText = "Please enter both coordinates";
+
+			} else {
+				try {
+					commandString = "PIN/UNPIN";
+					int x = Integer.parseInt(pinxInput.getText());
+					int y = Integer.parseInt(pinyInput.getText());
+
+					commandString += " " + x + " " + y;
+				} catch (NumberFormatException nfe) {
+					errorText = "Please enter integer values";
+				}
 			}
 		}
 
 		if (actionCommand == "CLEAR") {
 			// message Nothing to Clear
 			// message Done!
+			commandString = "CLEAR";
+
 		}
 
+		// over here, have a final IF statement: if error string is empty, send
+		// command
 		this.textArea.setText(errorText + "\nCommand: " + commandString);
 
 	}
@@ -278,7 +299,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 	}
 
 	public void connect(String address, int port) throws Exception {
-		// new socket to conncet to server
+		// new socket to connect to server
 		this.socket = new Socket(address, port);
 		// setting up readers and writers
 		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -305,6 +326,10 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 		// send a message to the server // out.println(message)
 		// get response //String response = in.readLine();
+	}
+
+	public void request(String command) {
+
 	}
 
 	public static void main(String[] args) {
