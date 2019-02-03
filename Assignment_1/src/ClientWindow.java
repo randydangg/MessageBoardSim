@@ -3,11 +3,8 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Arrays;
 
@@ -33,15 +30,16 @@ public class ClientWindow extends JFrame implements ActionListener {
 	private JTextField pinyInput = new JTextField(3);
 	private JTextField substrInput = new JTextField(15);
 	private JTextField postInput = new JTextField(20);
-	JTextArea textArea = new JTextArea(10, 30);
+	JTextArea textArea = new JTextArea(50, 30);
 	JScrollPane scrollPane = new JScrollPane(textArea);
+	private JButton cnnButton;
 
 	/* Socket API */
 	private Socket socket = null;
-	private DataInputStream console = null;
-	private DataOutputStream streamOut = null;
-	private BufferedReader in;
-	private PrintWriter out;
+	private DataInputStream in = null; // in.readUTF
+	private DataOutputStream out = null; // out.writeUTF
+	// private BufferedReader in;
+	// private PrintWriter out;
 
 	/* Variables needed on first connection */
 	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
@@ -79,7 +77,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 		JLabel pinLabel = new JLabel("PIN/UNPIN Coordinates");
 
 		/* Buttons */
-		JButton cnnButton = new JButton("CONNECT");
+		cnnButton = new JButton("CONNECT");
 		JButton getButton = new JButton("GET");
 		JButton getPinsButton = new JButton("GET PINS"); // button
 		JButton pinButton = new JButton("PIN/UNPIN");
@@ -167,8 +165,17 @@ public class ClientWindow extends JFrame implements ActionListener {
 				// // TODO Auto-generated catch block
 				// // WORK IN PROGRESS
 				// errorString = "Bad Connection. Please try another port or IP
-				// address";
+				// _ address";
 				// }
+			}
+		}
+
+		if (actionCommand == "DISCONNECT") {
+			try {
+				disconnect();
+			} catch (Exception excep) {
+				// TODO Auto-generated catch block
+				excep.printStackTrace();
 			}
 		}
 
@@ -295,36 +302,45 @@ public class ClientWindow extends JFrame implements ActionListener {
 		}
 
 		this.textArea.setText(displayText);
+		this.cnnButton.setText("DISCONNECT");
 
 	}
 
 	public void connect(String address, int port) throws Exception {
 		// new socket to connect to server
-		this.socket = new Socket(address, port);
-		// setting up readers and writers
-		this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		this.out = new PrintWriter(socket.getOutputStream(), true);
-		// first line from server should be a string specifying board dimensions
-		// and colors of note
-		String response = in.readLine();
-		String[] responseArr = response.split(" "); // split into array string
+		try {
+			this.socket = new Socket(address, port);
+			// setting up readers and writers
+			this.in = new DataInputStream(socket.getInputStream());
+			this.out = new DataOutputStream(socket.getOutputStream());
+			// first line from server should be a string specifying board
+			// dimensions
+			// and colors of note
+			String response = in.readUTF();
+			String[] responseArr = response.split(" "); // split into array
+														// string
 
-		// declare array for boardSize {width, height}
-		this.boardSize = new int[2];
-		boardSize[0] = Integer.parseInt(responseArr[0]);
-		boardSize[1] = Integer.parseInt(responseArr[1]);
-		// declare array of colors
-		this.colors = new String[responseArr.length - 2];
+			// declare array for boardSize {width, height}
+			this.boardSize = new int[2];
+			boardSize[0] = Integer.parseInt(responseArr[0]);
+			boardSize[1] = Integer.parseInt(responseArr[1]);
+			// declare array of colors
+			this.colors = new String[responseArr.length - 2];
 
-		String displayText = "Board Width: " + responseArr[0] + "\nBoard Height: " + responseArr[1]
-				+ "\nColors Available: ";
+			String displayText = "Board Width: " + responseArr[0] + "\nBoard Height: " + responseArr[1]
+					+ "\nColors Available: ";
 
-		for (int i = 2; i < responseArr.length; i++) {
-			displayText += responseArr[i] + " ";
-			this.colors[i - 2] = responseArr[i];
+			for (int i = 2; i < responseArr.length; i++) {
+				displayText += responseArr[i] + " ";
+				this.colors[i - 2] = responseArr[i];
+			}
+
+			this.cnnButton.setText("DISCONNECT");
+			this.textArea.setText(displayText);
+		} catch (Exception e) {
+			this.textArea.setText("Connection Error. Please see console.");
+			e.printStackTrace();
 		}
-
-		this.textArea.setText(displayText);
 
 		// size of board
 		// list of color
@@ -333,8 +349,43 @@ public class ClientWindow extends JFrame implements ActionListener {
 		// get response //String response = in.readLine();
 	}
 
-	public void request(String command) {
-		this.out.println(command);
+	public void disconnect() throws Exception {
+		this.cnnButton.setText("CONNECT");
+		// try {
+		// this.socket.close();
+		// } catch (IOException e) {
+		// this.textArea.setText("Error. Please see console.");
+		// e.printStackTrace();
+		// }
+
+	}
+
+	public void request(String command) throws Exception {
+		this.out.writeUTF(command);
+		String[] com = command.split(" ");
+		String req = com[0];
+		String response = this.in.readUTF();
+		String displayText;
+
+		if (req.equals("GET")) {
+			// this get request will print the details (color, coordinates, pin
+			// status, message) of the notes as per request
+		} else if (req.equals("POST")) {
+			// post successful
+		} else if (req.equals("PIN/UNPIN")) {
+
+		} else if (req.equals("GET PINS")) {
+
+		} else if (req.equals("CLEAR")) {
+			if (response.equals("NO PINS TO CLEAR")) {
+				displayText = "No notes to unpin to clear";
+			}
+		} else {
+
+			textArea.setText("Unable to process request " + req);
+
+		}
+
 	}
 
 	public static void main(String[] args) {
