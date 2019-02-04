@@ -3,8 +3,16 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Vector;
+=======
+import java.util.HashMap;
+import java.util.Map;
+import java.util.*;
+
+//V2
+>>>>>>> a37dc529ad2ad3d68d16aa0a36fe93f494b04116
 
 public class NotesServer {
 	private static ArrayList<String> COLORS = new ArrayList<String>();
