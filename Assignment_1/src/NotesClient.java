@@ -19,7 +19,7 @@ import javax.swing.JTextField;
 
 public class NotesClient extends JFrame implements ActionListener {
 	public static final int WIDTH = 600;
-	public static final int HEIGHT = 600;
+	public static final int HEIGHT = 500;
 
 	/* Text fields */
 	private JTextField ipInput = new JTextField(20);
@@ -30,7 +30,7 @@ public class NotesClient extends JFrame implements ActionListener {
 	private JTextField pinxInput = new JTextField(3);
 	private JTextField pinyInput = new JTextField(3);
 	private JTextField substrInput = new JTextField(15);
-	private JTextField postInput = new JTextField(20);
+	private JTextField postInput = new JTextField(30);
 	JTextArea textArea = new JTextArea(70, 50);
 	JScrollPane scrollPane = new JScrollPane(textArea);
 	private JButton cnnButton;
@@ -45,6 +45,7 @@ public class NotesClient extends JFrame implements ActionListener {
 	/* Variables needed on first connection */
 	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
 	private int[] boardSize = { 120, 120 };
+	private int noteSizeMin = 20;
 
 	public NotesClient() {
 		setSize(WIDTH, HEIGHT);
@@ -62,7 +63,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		JPanel resultsPanel = new JPanel();
 		JPanel clearPanel = new JPanel();
 
-		mainPanel.setLayout(new GridLayout(15, 1));
+		mainPanel.setLayout(new GridLayout(8, 1));
 		// postPanel.setLayout(new BorderLayout());
 		/* Labels */
 		JLabel ipLabel = new JLabel("IP Address");
@@ -92,9 +93,16 @@ public class NotesClient extends JFrame implements ActionListener {
 		postButton.addActionListener(this);
 		clearButton.addActionListener(this);
 
-		/* Result box */
+		/* alignment */
+		// postLabel.setAlignmentX(LEFT_ALIGNMENT);
+		// postInput.setAlignmentX(LEFT_ALIGNMENT);
+		// postButton.setAlignmentX(LEFT_ALIGNMENT);
 
+		/* Result box */
 		this.textArea.setEditable(false);
+		this.textArea.setWrapStyleWord(true);
+
+		/* add to window panel */
 
 		cnnPanel.add(ipLabel);
 		cnnPanel.add(ipInput);
@@ -183,7 +191,7 @@ public class NotesClient extends JFrame implements ActionListener {
 
 		if (actionCommand == "POST") {
 			if (postInput.getText().equals("")) {
-				errorText = "Please enter post command: <coordinates> <width> <height> <color> <message>";
+				errorText = "Please enter post command: <board x> <board y> <note width> <note height> <color> <message>";
 				// if user's input color not in the list, then assume that it
 				// will be the message
 			} else {
@@ -193,24 +201,41 @@ public class NotesClient extends JFrame implements ActionListener {
 					commandString = "POST";
 					int x_pos = Integer.parseInt(postArr[0]);
 					int y_pos = Integer.parseInt(postArr[1]);
-					int boardWidth = Integer.parseInt(postArr[2]);
-					int boardHeight = Integer.parseInt(postArr[3]);
-					commandString += " " + x_pos + " " + y_pos + " " + boardWidth + " " + boardHeight;
-					if (!(Arrays.asList(this.colors).contains(postArr[2]))) {
-						postColor = this.colors[0].toLowerCase();
-					} else {
-						postColor = postArr[2].toLowerCase();
-						// Arrays.asList(this.colors).contains(
+					int noteWidth = Integer.parseInt(postArr[2]);
+					int noteHeight = Integer.parseInt(postArr[3]);
+
+					if ((noteWidth + x_pos > this.boardSize[0]) || (noteHeight + y_pos > this.boardSize[1])) {
+						errorText += "Note is out of bounds.\n";
 					}
-					commandString += " " + postColor;
-					// copy rest of message into the command string
-					String[] message = Arrays.copyOfRange(postArr, 3, postArr.length);
-					for (String m : message) {
-						commandString += " " + m;
+					if (noteWidth > this.boardSize[0] || noteHeight > this.boardSize[1]) {
+						errorText += "Note size should not be greater than board\n";
+					}
+					if (noteWidth < this.noteSizeMin || noteHeight < this.noteSizeMin) {
+						errorText += "Note size must be greater than " + this.noteSizeMin + "\n";
+					}
+					if (errorText.equals("")) { // if no errors
+
+						commandString += " " + x_pos + " " + y_pos + " " + noteWidth + " " + noteHeight;
+						if (!(Arrays.asList(this.colors).contains(postArr[4]))) {
+							// if color is not listed, set color to default
+							// first color in array
+							postColor = this.colors[0].toLowerCase();
+						} else {
+							// if color listed, convert to lower case to append
+							postColor = postArr[4].toLowerCase();
+						}
+						commandString += " " + postColor;
+						// copy rest of message into the command string
+						String[] message = Arrays.copyOfRange(postArr, 4, postArr.length);
+						for (String m : message) {
+							commandString += " " + m;
+						}
 					}
 
 				} catch (NumberFormatException nfe) {
 					errorText = "The first two numbers must be integers";
+				} catch (IndexOutOfBoundsException ie) {
+					errorText = "Please enter post command: <board x> <board y> <note width> <note height> <color> <message>";
 				}
 			}
 		}
@@ -227,31 +252,37 @@ public class NotesClient extends JFrame implements ActionListener {
 				// is empty
 				errorText += "Please include both coordinates";
 			} else { // at least one is not empty
-				commandString += "GET";
+				try {
 
-				// if has color or has refersTo and there have been no errors
-				// from above, then it is a good input
-				if ((!colorInput.getText().equals("")) && errorText.equals("")) {
+					commandString += "GET";
 
-					hasColor = Arrays.asList(this.colors).contains(colorInput.getText());
+					// if has color or has refersTo and there have been no
+					// errors
+					// from above, then it is a good input
+					if ((!colorInput.getText().equals("")) && errorText.equals("")) {
+						hasColor = Arrays.asList(this.colors).contains(colorInput.getText());
 
-					System.out.println(hasColor);
-					// only need to see if color is valid because
-					if (hasColor) {
-						// create a string to send to server
-						System.out.println("color is valid");
-						commandString += " color=" + colorInput.getText().toLowerCase();
-					} else {
-						errorText = "Color does not exist. Please choose from: " + Arrays.toString(this.colors);
+						// verify if it is a valid get color
+						if (hasColor) {
+							commandString += " color=" + colorInput.getText().toLowerCase();
+						} else {
+							errorText = "Color does not exist. Please choose from: " + Arrays.toString(this.colors);
+						}
 					}
-				}
-				if (!xInput.getText().equals("") && !yInput.getText().equals("")) {
-					commandString += " contains= " + xInput.getText() + " " + yInput.getText();
-				}
-				if ((!substrInput.getText().equals("")) && errorText.equals("")) {
-					commandString += " refersTo=" + substrInput.getText();
-				}
+					if (!xInput.getText().equals("") && !yInput.getText().equals("")) {
+						// check if x and y values are integers
+						Integer.parseInt(xInput.getText());
+						Integer.parseInt(yInput.getText());
+						commandString += " contains=" + xInput.getText() + " " + yInput.getText();
 
+					}
+					if ((!substrInput.getText().equals("")) && errorText.equals("")) {
+						commandString += " refersTo=" + substrInput.getText();
+					}
+
+				} catch (NumberFormatException nfe) {
+					errorText += "Please enter integer values for x and y";
+				}
 			}
 
 		}
