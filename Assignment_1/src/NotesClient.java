@@ -178,9 +178,8 @@ public class NotesClient extends JFrame implements ActionListener {
 				} catch (SocketException e1) {
 
 					errorText = "Bad Connection. Please try another port or IP address";
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception e2) {
+					e2.printStackTrace();
 				}
 			}
 		}
@@ -334,16 +333,18 @@ public class NotesClient extends JFrame implements ActionListener {
 
 		// if (socket == null) {
 		// this.textArea.setText("No connection made");
-		// } else if (errorText.equals("")) {
-		// commandString = ""; // free memory from command string
-		// this.textArea.setText(errorText + "\nCommand: " + commandString);
-		// } else {
-		// try {
-		// request(commandString);
-		// } catch (IOException e1) {
-		// // TODO Auto-generated catch block
-		// e1.printStackTrace();
 		// }
+		if (errorText.equals("")) {
+			commandString = ""; // free memory from command string
+			this.textArea.setText(errorText + "\nCommand: " + commandString);
+
+			try {
+				request(commandString);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 
 		// }
 
@@ -429,7 +430,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		String req = com[0];
 		try {
 			this.out.writeUTF(command);
-
+			System.out.println(command);
 			String response = this.in.readUTF();
 
 			if (req.equals("GET") || req.equals("POST") || req.equals("PIN/UNPIN") || req.equals("GET PINS")
