@@ -14,6 +14,7 @@ import java.util.*;
 
 public class NotesServer {
 	private static ArrayList<String> COLORS = new ArrayList<String>();
+	private static String COLOR_LIST = "";
 	//a 2d vector that will store client details
 	private static Vector<Note> NOTES = new Vector<Note>();
 	//another 2d vector that will store locations of pins
@@ -33,6 +34,10 @@ public class NotesServer {
         	COLORS.add(args[i]);
         }
         
+        for (int j = 0; j < COLORS.size(); j++) {
+        	COLOR_LIST = COLOR_LIST + COLORS.get(j) + " ";
+        }
+        
         int clientNumber = 0;
         ServerSocket listener = new ServerSocket(PORT_NUM);	//port number
         try {
@@ -43,7 +48,6 @@ public class NotesServer {
         finally {
         	listener.close();
         }
-        
     }
 	
 	private static class Client extends Thread {
@@ -66,18 +70,19 @@ public class NotesServer {
 		}
 		
 		public void run() {
-			connection: try {	//use a label in the case the client wants to disconnect 
+			try {	
 //				input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 				input = new DataInputStream(socket.getInputStream());
 //	            output = new PrintWriter(socket.getOutputStream(), true);
 	            output = new DataOutputStream(socket.getOutputStream());
 //				output.println("Connection with client# " + clientNumber + " is successful, welcome!");
-	            output.writeUTF("Connection with client# " + clientNumber + " is successful, welcome!");
+	            output.writeUTF(BOARD_WIDTH + " " + BOARD_HEIGHT + " " + COLOR_LIST + "\n");
 	            
 				while (true) {
 //					command = input.readLine();
 					command = input.readUTF();
 					splitCommand = command.split(" "); 	//split the command into tokens
+					System.out.println(command);
 					if (command.startsWith("POST")) {	//if client wants to POST
 						int x_pos = Integer.parseInt(splitCommand[1]);
 						int y_pos = Integer.parseInt(splitCommand[2]);
@@ -122,8 +127,6 @@ public class NotesServer {
 							
 							boolean getReference = false; 
 							String reference_str = "";
-							
-				//			Vector<Note> temp_notes = new Vector<Note>();
 							
 							for (int i = 1; i < splitCommand.length; i++) {
 								if (splitCommand[i].contains("color")) {
@@ -266,6 +269,9 @@ public class NotesServer {
 								}
 							}
 						}
+						else {
+							output.writeUTF("A pin already exists at this location");
+						}
 					}
 					else if (command.startsWith("UNPIN")) {	//if client wants to UNPIN
 						int temp_x = Integer.parseInt(splitCommand[1].substring(splitCommand[1].indexOf(",")-1));
@@ -316,19 +322,18 @@ public class NotesServer {
 //						output.println("All unpinned notes have been cleared");
 						output.writeUTF("All unpinned notes have been cleared");
 					}
-					else if (command.startsWith("DISCONNECT")) {	//if client wants to DISCONNECT
-						break connection;	//break out of try block and close the client connection
+					else if (command.equals("DISCONNECT")) {	//if client wants to DISCONNECT
+						output.writeUTF("6");
+						break;
 					}
 				}
 			} catch (IOException e) {
-//				output.println("connection with client# " + clientNumber + " has failed");
-				System.out.println("Error handling connection");
-			}
-			finally {
+                System.out.println("Error handling client# " + clientNumber + ": " + e);
+            } finally {	
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    System.out.println("Error: Socket could not be closed");
+                	System.out.println("Couldn't close a socket, what's going on?");
                 }
                 System.out.println("Connection with client# " + clientNumber + " closed");
             }
