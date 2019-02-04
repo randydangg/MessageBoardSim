@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Arrays;
 
 import javax.swing.JButton;
@@ -19,7 +20,7 @@ import javax.swing.JTextField;
 
 public class NotesClient extends JFrame implements ActionListener {
 	public static final int WIDTH = 600;
-	public static final int HEIGHT = 500;
+	public static final int HEIGHT = 800;
 
 	/* Text fields */
 	private JTextField ipInput = new JTextField(20);
@@ -31,8 +32,8 @@ public class NotesClient extends JFrame implements ActionListener {
 	private JTextField pinyInput = new JTextField(3);
 	private JTextField substrInput = new JTextField(15);
 	private JTextField postInput = new JTextField(30);
-	JTextArea textArea = new JTextArea(70, 50);
-	JScrollPane scrollPane = new JScrollPane(textArea);
+	JTextArea textArea = new JTextArea(5, 40);
+	JScrollPane scrollPane;
 	private JButton cnnButton;
 
 	/* Socket API */
@@ -63,7 +64,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		JPanel resultsPanel = new JPanel();
 		JPanel clearPanel = new JPanel();
 
-		mainPanel.setLayout(new GridLayout(8, 1));
+		mainPanel.setLayout(new GridLayout(7, 1));
 		// postPanel.setLayout(new BorderLayout());
 		/* Labels */
 		JLabel ipLabel = new JLabel("IP Address");
@@ -101,6 +102,10 @@ public class NotesClient extends JFrame implements ActionListener {
 		/* Result box */
 		this.textArea.setEditable(false);
 		this.textArea.setWrapStyleWord(true);
+		// this.scrollPane.setViewportView(arg0);
+		this.scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		// this.scrollPane.setVerticalScrollBar(new JScrollBar());
 
 		/* add to window panel */
 
@@ -135,7 +140,8 @@ public class NotesClient extends JFrame implements ActionListener {
 
 		clearPanel.add(clearButton);
 
-		resultsPanel.add(textArea);
+		// resultsPanel.add(textArea);
+		resultsPanel.add(scrollPane);
 
 		add(mainPanel);
 		mainPanel.add(cnnPanel);
@@ -164,18 +170,18 @@ public class NotesClient extends JFrame implements ActionListener {
 				String ipAddress = ipInput.getText();
 				try {
 					int port = Integer.parseInt(portInput.getText());
+					System.out.println(ipAddress + port);
+					connect(ipAddress, port);
 				} catch (NumberFormatException nfe) {
 					errorText = "Please enter an integer for Port Number";
+
+				} catch (SocketException e1) {
+
+					errorText = "Bad Connection. Please try another port or IP address";
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-				test();
-				// try {
-				// connect(ipAddress, port);
-				// } catch (SocketException e1) {
-				// // TODO Auto-generated catch block
-				// // WORK IN PROGRESS
-				// errorString = "Bad Connection. Please try another port or IP
-				// _ address";
-				// }
 			}
 		}
 
@@ -223,13 +229,21 @@ public class NotesClient extends JFrame implements ActionListener {
 						} else {
 							// if color listed, convert to lower case to append
 							postColor = postArr[4].toLowerCase();
+
 						}
 						commandString += " " + postColor;
+
 						// copy rest of message into the command string
-						String[] message = Arrays.copyOfRange(postArr, 4, postArr.length);
+						String[] message = Arrays.copyOfRange(postArr, 5, postArr.length);
 						for (String m : message) {
 							commandString += " " + m;
 						}
+						if (message.length == 0) {
+							errorText += "Message must not be empty stsring.";
+							// clear memory of command string
+							// commandString = "";
+						}
+
 					}
 
 				} catch (NumberFormatException nfe) {
@@ -253,12 +267,12 @@ public class NotesClient extends JFrame implements ActionListener {
 				errorText += "Please include both coordinates";
 			} else { // at least one is not empty
 				try {
-
 					commandString += "GET";
-
-					// if has color or has refersTo and there have been no
-					// errors
-					// from above, then it is a good input
+					/*
+					 * note that in the presence of an error text, the command
+					 * string will not be sent
+					 */
+					// if user entered color
 					if ((!colorInput.getText().equals("")) && errorText.equals("")) {
 						hasColor = Arrays.asList(this.colors).contains(colorInput.getText());
 
@@ -269,6 +283,8 @@ public class NotesClient extends JFrame implements ActionListener {
 							errorText = "Color does not exist. Please choose from: " + Arrays.toString(this.colors);
 						}
 					}
+					// if user entered both coordinates - handled from above
+					// code
 					if (!xInput.getText().equals("") && !yInput.getText().equals("")) {
 						// check if x and y values are integers
 						Integer.parseInt(xInput.getText());
@@ -276,6 +292,7 @@ public class NotesClient extends JFrame implements ActionListener {
 						commandString += " contains=" + xInput.getText() + " " + yInput.getText();
 
 					}
+					// if user entered refersTo
 					if ((!substrInput.getText().equals("")) && errorText.equals("")) {
 						commandString += " refersTo=" + substrInput.getText();
 					}
@@ -313,15 +330,12 @@ public class NotesClient extends JFrame implements ActionListener {
 			commandString = "CLEAR";
 		}
 
-		// over here, have a final IF statement: if error string is empty, send
-		// command
-
-		this.textArea.setText(errorText + "\nCommand: " + commandString);
+		// this.textArea.setText(errorText + "\nCommand: " + commandString);
 
 		// if (socket == null) {
 		// this.textArea.setText("No connection made");
 		// } else if (errorText.equals("")) {
-		//
+		// commandString = ""; // free memory from command string
 		// this.textArea.setText(errorText + "\nCommand: " + commandString);
 		// } else {
 		// try {
@@ -349,7 +363,7 @@ public class NotesClient extends JFrame implements ActionListener {
 			displayText += responseArr[i] + " ";
 			colors[i - 2] = responseArr[i];
 		}
-
+		System.out.println("Display text: " + displayText);
 		this.textArea.setText(displayText);
 		this.cnnButton.setText("DISCONNECT");
 
@@ -369,6 +383,8 @@ public class NotesClient extends JFrame implements ActionListener {
 			String response = in.readUTF();
 			String[] responseArr = response.split(" "); // split into array
 														// string
+
+			System.out.println(response);
 
 			// declare array for boardSize {width, height}
 			this.boardSize = new int[2];
@@ -398,6 +414,7 @@ public class NotesClient extends JFrame implements ActionListener {
 
 	public void disconnect() throws Exception {
 		this.cnnButton.setText("CONNECT");
+		out.writeUTF("DISCONNECT");
 		try {
 			this.socket.close();
 		} catch (Exception e) {
