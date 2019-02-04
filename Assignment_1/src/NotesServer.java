@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.*;
 
-
+//V2
 
 public class NotesServer {
 	private static ArrayList<String> COLORS = new ArrayList<String>();
