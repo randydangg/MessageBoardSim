@@ -181,7 +181,7 @@ public class ClientWindow extends JFrame implements ActionListener {
 
 		if (actionCommand == "POST") {
 			if (postInput.getText().equals("")) {
-				errorText = "Please enter post command: <width> <height> <color> <message>";
+				errorText = "Please enter post command: <coordinates <width> <height> <color> <message>";
 				// if user's input color not in the list, then assume that it
 				// will be the message
 			} else {
