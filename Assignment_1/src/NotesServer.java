@@ -101,7 +101,7 @@ public class NotesServer {
 							//get coordinates of all pins and send to client 
 							String all_coordinates = "";
 							for (int i = 0; i < PINS.size(); i++) {
-								all_coordinates = all_coordinates + "(" + PINS.get(i).x + ", " + PINS.get(i).y + ") ";
+								all_coordinates = all_coordinates + "(" + PINS.get(i).x + ", " + PINS.get(i).y + ") \n";
 							}
 							if (all_coordinates.equals("")) {
 //								output.println("There are currently no PINs on the board");
@@ -151,7 +151,7 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y && chosen_y < up_y_bound && NOTES.elementAt(a).message.contains(reference_str)) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -164,7 +164,7 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y && chosen_y < up_y_bound) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -174,7 +174,7 @@ public class NotesServer {
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).color.equals(chosen_color) && NOTES.elementAt(a).message.contains(reference_str)) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -184,7 +184,7 @@ public class NotesServer {
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).color.equals(chosen_color)) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -197,7 +197,7 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y && chosen_y < up_y_bound && NOTES.elementAt(a).message.contains(reference_str)) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -210,7 +210,7 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y && chosen_y < up_y_bound) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
@@ -219,7 +219,7 @@ public class NotesServer {
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).message.contains(reference_str)) {
 										//store the desired note as one big string
-										output_notes = output_notes + NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message + "\n";
 									}
 								}
 							}
