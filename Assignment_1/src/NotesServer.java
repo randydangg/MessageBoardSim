@@ -3,16 +3,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-<<<<<<< HEAD
 import java.util.ArrayList;
 import java.util.Vector;
-=======
-import java.util.HashMap;
-import java.util.Map;
-import java.util.*;
 
 //V2
->>>>>>> a37dc529ad2ad3d68d16aa0a36fe93f494b04116
 
 public class NotesServer {
 	private static ArrayList<String> COLORS = new ArrayList<String>();
@@ -81,7 +75,7 @@ public class NotesServer {
 				output = new DataOutputStream(socket.getOutputStream());
 				// output.println("Connection with client# " + clientNumber + "
 				// is successful, welcome!");
-				output.writeUTF(BOARD_WIDTH + " " + BOARD_HEIGHT + " " + COLOR_LIST + "\n");
+				output.writeUTF(clientNumber + " " + BOARD_WIDTH + " " + BOARD_HEIGHT + " " + COLOR_LIST + "\n");
 
 				while (true) {
 					// command = input.readLine();
@@ -110,17 +104,18 @@ public class NotesServer {
 						Note note = new Note(x_pos, y_pos, width, height, color, message, 0);
 						NOTES.add(note);
 						// output.println("Note is successfully posted!");
-						// output.writeUTF("Note is successfully posted!");
+						output.writeUTF("Note is successfully posted!");
 						// output.writeUTF(note.x_pos + " " + note.color + " " +
 						// note.message);
 					} else if (command.startsWith("GET")) { // if client wants
 															// to GET
+						System.out.println("ATTEMPTING A GET REQUEST!");
 						String output_notes = ""; // this will be the string of
 													// notes that is sent to the
 													// client
+						String all_coordinates = "";
 						if (splitCommand[1].contains("PINS")) {
 							// get coordinates of all pins and send to client
-							String all_coordinates = "";
 							for (int i = 0; i < PINS.size(); i++) {
 								all_coordinates = all_coordinates + "(" + PINS.get(i).x + ", " + PINS.get(i).y + ") \n";
 							}
@@ -166,8 +161,9 @@ public class NotesServer {
 									int up_x_bound = NOTES.elementAt(a).x_pos + NOTES.elementAt(a).width;
 									int low_y_bound = NOTES.elementAt(a).y_pos;
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
-									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound < chosen_x
-											&& chosen_x < up_x_bound && low_y_bound < chosen_y && chosen_y < up_y_bound
+									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound <= chosen_x
+											&& chosen_x <= up_x_bound && low_y_bound <= chosen_y
+											&& chosen_y <= up_y_bound
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
@@ -183,9 +179,9 @@ public class NotesServer {
 									int up_x_bound = NOTES.elementAt(a).x_pos + NOTES.elementAt(a).width;
 									int low_y_bound = NOTES.elementAt(a).y_pos;
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
-									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound < chosen_x
-											&& chosen_x < up_x_bound && low_y_bound < chosen_y
-											&& chosen_y < up_y_bound) {
+									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound <= chosen_x
+											&& chosen_x <= up_x_bound && low_y_bound <= chosen_y
+											&& chosen_y <= up_y_bound) {
 										// store the desired note as one big
 										// string
 										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
@@ -226,8 +222,8 @@ public class NotesServer {
 									int up_x_bound = NOTES.elementAt(a).x_pos + NOTES.elementAt(a).width;
 									int low_y_bound = NOTES.elementAt(a).y_pos;
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
-									if (low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y
-											&& chosen_y < up_y_bound
+									if (low_x_bound <= chosen_x && chosen_x <= up_x_bound && low_y_bound <= chosen_y
+											&& chosen_y <= up_y_bound
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
@@ -243,8 +239,8 @@ public class NotesServer {
 									int up_x_bound = NOTES.elementAt(a).x_pos + NOTES.elementAt(a).width;
 									int low_y_bound = NOTES.elementAt(a).y_pos;
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
-									if (low_x_bound < chosen_x && chosen_x < up_x_bound && low_y_bound < chosen_y
-											&& chosen_y < up_y_bound) {
+									if (low_x_bound <= chosen_x && chosen_x <= up_x_bound && low_y_bound <= chosen_y
+											&& chosen_y <= up_y_bound) {
 										// store the desired note as one big
 										// string
 										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
@@ -264,20 +260,22 @@ public class NotesServer {
 									}
 								}
 							}
-						}
-						if (output_notes.equals("") && splitCommand[1] != "PINS") {
-							// couldnt fulfill the request made
-							// output.println("There are no notes satisfying
-							// your request!");
-							output.writeUTF("There are no notes satisfying your request!");
-						} else {
-							// output.println(output_notes);
-							output.writeUTF(output_notes);
+
+							if (output_notes.equals("") && splitCommand[1] != "PINS") {
+								// couldnt fulfill the request made
+								// output.println("There are no notes satisfying
+								// your request!");
+								output.writeUTF("There are no notes satisfying your request!");
+							} else {
+								// output.println(output_notes);
+								output.writeUTF(output_notes);
+							}
 						}
 					} else if (command.startsWith("PIN")) { // if client wants
 															// to PIN
-						int temp_x = Integer.parseInt(splitCommand[1].substring(splitCommand[1].indexOf(",") - 1));
-						int temp_y = Integer.parseInt(splitCommand[1].substring(splitCommand[1].indexOf(",") + 1));
+						String[] index_split = splitCommand[1].split(",");
+						int temp_x = Integer.parseInt(index_split[0]);
+						int temp_y = Integer.parseInt(index_split[1]);
 						boolean pinned = true;
 
 						for (int i = 0; i < PINS.size(); i++) {
@@ -293,6 +291,7 @@ public class NotesServer {
 							Pin pin = new Pin(temp_x, temp_y);
 							PINS.add(pin);
 							// output.println("Pin is successfully pinned!");
+							System.out.println(pin.x + " " + pin.y);
 							output.writeUTF("Pin is successfully pinned!");
 							for (int i = 0; i < NOTES.size(); i++) {
 								// check if there are notes in the position of
@@ -302,11 +301,13 @@ public class NotesServer {
 								int lower_y_bound = NOTES.elementAt(i).y_pos;
 								int upper_y_bound = NOTES.elementAt(i).y_pos + NOTES.elementAt(i).height;
 
-								if (lower_x_bound < temp_x && temp_x < upper_x_bound && lower_y_bound < temp_y
-										&& temp_y < upper_y_bound) {
+								if (lower_x_bound <= temp_x && temp_x <= upper_x_bound && lower_y_bound <= temp_y
+										&& temp_y <= upper_y_bound) {
 									// check if the current note is located in
 									// the range of the pin location
 									// if so, change the notes status to pinned
+									System.out.println("Note at " + NOTES.elementAt(i).x_pos + " "
+											+ NOTES.elementAt(i).y_pos + " is pinned");
 									NOTES.elementAt(i).status = 1;
 								}
 							}
@@ -315,8 +316,10 @@ public class NotesServer {
 						}
 					} else if (command.startsWith("UNPIN")) { // if client wants
 																// to UNPIN
-						int temp_x = Integer.parseInt(splitCommand[1].substring(splitCommand[1].indexOf(",") - 1));
-						int temp_y = Integer.parseInt(splitCommand[1].substring(splitCommand[1].indexOf(",") + 1));
+						String[] index_split = splitCommand[1].split(",");
+						int temp_x = Integer.parseInt(index_split[0]);
+						int temp_y = Integer.parseInt(index_split[1]);
+						boolean hasPinNotes = false;
 						boolean hasPin = false;
 
 						for (int i = 0; i < PINS.size(); i++) {
@@ -324,47 +327,60 @@ public class NotesServer {
 								// if there is already a pin at the location
 								// being requested, remove it
 								PINS.removeElementAt(i);
+								hasPin = true;
 								break;
 							}
 						}
+						if (hasPin == false) {
+							output.writeUTF("There is no pin to unpin at this location");
+						} else {
+							for (int i = 0; i < NOTES.size(); i++) {
+								// check if there are notes in the position of
+								// the
+								// requested pin location
+								int lower_x_bound = NOTES.elementAt(i).x_pos;
+								int upper_x_bound = NOTES.elementAt(i).x_pos + NOTES.elementAt(i).width;
+								int lower_y_bound = NOTES.elementAt(i).y_pos;
+								int upper_y_bound = NOTES.elementAt(i).y_pos + NOTES.elementAt(i).height;
 
-						for (int i = 0; i < NOTES.size(); i++) {
-							// check if there are notes in the position of the
-							// requested pin location
-							int lower_x_bound = NOTES.elementAt(i).x_pos;
-							int upper_x_bound = NOTES.elementAt(i).x_pos + NOTES.elementAt(i).width;
-							int lower_y_bound = NOTES.elementAt(i).y_pos;
-							int upper_y_bound = NOTES.elementAt(i).y_pos + NOTES.elementAt(i).height;
-
-							if (lower_x_bound < temp_x && temp_x < upper_x_bound && lower_y_bound < temp_y
-									&& temp_y < upper_y_bound) {
-								// check if the current note is located in the
-								// range of the pin location
-								// if so, we have to check if the note has
-								// another pin on it
-								for (int j = 0; j < PINS.size(); j++) {
-									if (lower_x_bound < PINS.elementAt(j).x && PINS.elementAt(j).x < upper_x_bound
-											&& lower_y_bound < PINS.elementAt(j).y
-											&& PINS.elementAt(j).y < upper_y_bound) {
-										// there is another pin on the note
-										hasPin = true;
-										break;
+								if (lower_x_bound <= temp_x && temp_x <= upper_x_bound && lower_y_bound <= temp_y
+										&& temp_y <= upper_y_bound) {
+									// check if the current note is located in
+									// the
+									// range of the pin location
+									// if so, we have to check if the note has
+									// another pin on it
+									for (int j = 0; j < PINS.size(); j++) {
+										if (lower_x_bound <= PINS.elementAt(j).x && PINS.elementAt(j).x <= upper_x_bound
+												&& lower_y_bound <= PINS.elementAt(j).y
+												&& PINS.elementAt(j).y <= upper_y_bound) {
+											// there is another pin on the note
+											hasPinNotes = true;
+											break;
+										}
 									}
 								}
+								if (hasPinNotes == false) {
+									NOTES.elementAt(i).status = 0; // the
+																	// current
+																	// note has
+																	// no
+																	// other pin
+																	// on
+																	// it, so
+																	// change
+																	// status to
+																	// unpinned
+								} else if (hasPinNotes == true) {
+									hasPinNotes = false; // if the current note
+															// has
+									// another pin, re initialize
+									// the hasPin variable
+								}
 							}
-							if (hasPin == false) {
-								NOTES.elementAt(i).status = 0; // the current
-																// note has no
-																// other pin on
-																// it, so change
-																// status to
-																// unpinned
-							} else if (hasPin == true) {
-								hasPin = false; // if the current note has
-												// another pin, re initialize
-												// the hasPin variable
-							}
+							output.writeUTF("Unpin request is successful");
 						}
+
 					} else if (command.startsWith("CLEAR")) { // if client wants
 																// to CLEAR
 						for (int i = 0; i < NOTES.size(); i++) {

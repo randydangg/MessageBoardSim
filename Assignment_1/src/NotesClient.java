@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -46,7 +47,8 @@ public class NotesClient extends JFrame implements ActionListener {
 	/* Variables needed on first connection */
 	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
 	private int[] boardSize = { 120, 120 };
-	private int noteSizeMin = 20;
+	private int noteSizeMin = 5;
+	private String errorText = "";
 
 	public NotesClient() {
 		setSize(WIDTH, HEIGHT);
@@ -77,13 +79,14 @@ public class NotesClient extends JFrame implements ActionListener {
 		JLabel xLabel = new JLabel("X");
 		JLabel yLabel = new JLabel("Y");
 		JLabel getSubstrLabel = new JLabel("RefersTo");
-		JLabel pinLabel = new JLabel("PIN/UNPIN Coordinates");
+		// JLabel pinLabel = new JLabel("PIN/UNPIN Coordinates");
 
 		/* Buttons */
 		cnnButton = new JButton("CONNECT");
 		JButton getButton = new JButton("GET");
 		JButton getPinsButton = new JButton("GET PINS"); // button
-		JButton pinButton = new JButton("PIN/UNPIN");
+		JButton pinButton = new JButton("PIN");
+		JButton unpinButton = new JButton("UNPIN");
 		JButton postButton = new JButton("POST");
 		JButton clearButton = new JButton("CLEAR");
 
@@ -91,6 +94,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		getButton.addActionListener(this);
 		getPinsButton.addActionListener(this);
 		pinButton.addActionListener(this);
+		unpinButton.addActionListener(this);
 		postButton.addActionListener(this);
 		clearButton.addActionListener(this);
 
@@ -104,7 +108,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		this.textArea.setWrapStyleWord(true);
 		// this.scrollPane.setViewportView(arg0);
 		this.scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		// this.scrollPane.setVerticalScrollBar(new JScrollBar());
 
 		/* add to window panel */
@@ -135,6 +139,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		pinPanel.add(yLabel);
 		pinPanel.add(pinyInput);
 		pinPanel.add(pinButton);
+		pinPanel.add(unpinButton);
 
 		getPinsPanel.add(getPinsButton);
 
@@ -156,12 +161,14 @@ public class NotesClient extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String errorText = ""; // error text that may show up. if errortext
-								// exists, no action will be executed
+		errorText = ""; // error text that may show up. if errortext
+						// exists, no action will be executed
 		String actionCommand = e.getActionCommand();
 		String commandString = ""; // string to be sent to the server
 		String postColor = "";
 		boolean hasColor = false;
+
+		System.out.println(actionCommand);
 
 		if (actionCommand == "CONNECT") {
 			if (ipInput.getText().equals("") || portInput.getText().equals("")) {
@@ -170,7 +177,7 @@ public class NotesClient extends JFrame implements ActionListener {
 				String ipAddress = ipInput.getText();
 				try {
 					int port = Integer.parseInt(portInput.getText());
-					System.out.println(ipAddress + port);
+					// System.out.println(ipAddress + port);
 					connect(ipAddress, port);
 				} catch (NumberFormatException nfe) {
 					errorText = "Please enter an integer for Port Number";
@@ -181,10 +188,13 @@ public class NotesClient extends JFrame implements ActionListener {
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
+				if (!errorText.equals("")) {
+					this.textArea.setText(errorText);
+				}
 			}
 		}
 
-		if (actionCommand == "DISCONNECT") {
+		else if (actionCommand == "DISCONNECT") {
 			try {
 				disconnect();
 			} catch (Exception excep) {
@@ -194,7 +204,7 @@ public class NotesClient extends JFrame implements ActionListener {
 			}
 		}
 
-		if (actionCommand == "POST") {
+		else if (actionCommand == "POST") {
 			if (postInput.getText().equals("")) {
 				errorText = "Please enter post command: <board x> <board y> <note width> <note height> <color> <message>";
 				// if user's input color not in the list, then assume that it
@@ -204,6 +214,7 @@ public class NotesClient extends JFrame implements ActionListener {
 
 				try {
 					commandString = "POST";
+					int startindex = 5;
 					int x_pos = Integer.parseInt(postArr[0]);
 					int y_pos = Integer.parseInt(postArr[1]);
 					int noteWidth = Integer.parseInt(postArr[2]);
@@ -211,12 +222,15 @@ public class NotesClient extends JFrame implements ActionListener {
 
 					if ((noteWidth + x_pos > this.boardSize[0]) || (noteHeight + y_pos > this.boardSize[1])) {
 						errorText += "Note is out of bounds.\n";
+
 					}
 					if (noteWidth > this.boardSize[0] || noteHeight > this.boardSize[1]) {
 						errorText += "Note size should not be greater than board\n";
+
 					}
 					if (noteWidth < this.noteSizeMin || noteHeight < this.noteSizeMin) {
 						errorText += "Note size must be greater than " + this.noteSizeMin + "\n";
+
 					}
 					if (errorText.equals("")) { // if no errors
 
@@ -225,6 +239,7 @@ public class NotesClient extends JFrame implements ActionListener {
 							// if color is not listed, set color to default
 							// first color in array
 							postColor = this.colors[0].toLowerCase();
+							startindex = 4;
 						} else {
 							// if color listed, convert to lower case to append
 							postColor = postArr[4].toLowerCase();
@@ -233,30 +248,39 @@ public class NotesClient extends JFrame implements ActionListener {
 						commandString += " " + postColor;
 
 						// copy rest of message into the command string
-						String[] message = Arrays.copyOfRange(postArr, 5, postArr.length);
+						String[] message = Arrays.copyOfRange(postArr, startindex, postArr.length);
 						for (String m : message) {
 							commandString += " " + m;
 						}
 						if (message.length == 0) {
-							errorText += "Message must not be empty stsring.";
+							errorText += "Message must not be empty string.";
+
 							// clear memory of command string
 							// commandString = "";
 						}
 
 					}
+					request(commandString);
 
 				} catch (NumberFormatException nfe) {
-					errorText = "The first two numbers must be integers";
+					errorText = "The first four numbers must be integers";
+
 				} catch (IndexOutOfBoundsException ie) {
-					errorText = "Please enter post command: <board x> <board y> <note width> <note height> <color> <message>";
+					errorText = "Please enter post command: \n<board x> <board y> <note width> <note height> <color> <message>";
+				} catch (IOException ioe) {
+					errorText = "Sudden Error in input";
+				}
+				if (!errorText.equals("")) {
+					this.textArea.setText(errorText);
 				}
 			}
 		}
 
-		if (actionCommand == "GET") {
+		else if (actionCommand == "GET") {
 			// If all empty
 			if (colorInput.getText().equals("") && substrInput.getText().equals("") & xInput.getText().equals("")
 					&& yInput.getText().equals("")) {
+
 				errorText = "Please fill in at least one of the requirements. ";
 
 			} else if ((xInput.getText().equals("") && !yInput.getText().equals(""))
@@ -264,6 +288,7 @@ public class NotesClient extends JFrame implements ActionListener {
 				// if x is empty but y is not empty OR if x is not empty but y
 				// is empty
 				errorText += "Please include both coordinates";
+
 			} else { // at least one is not empty
 				try {
 					commandString += "GET";
@@ -288,63 +313,116 @@ public class NotesClient extends JFrame implements ActionListener {
 						// check if x and y values are integers
 						Integer.parseInt(xInput.getText());
 						Integer.parseInt(yInput.getText());
-						commandString += " contains=" + xInput.getText() + " " + yInput.getText();
+						commandString += " contains= " + xInput.getText() + " " + yInput.getText();
 
 					}
 					// if user entered refersTo
 					if ((!substrInput.getText().equals("")) && errorText.equals("")) {
 						commandString += " refersTo=" + substrInput.getText();
 					}
-
+					request(commandString);
 				} catch (NumberFormatException nfe) {
 					errorText += "Please enter integer values for x and y";
+				} catch (IOException ioe) {
+					errorText = "Sudden Error in input";
+				}
+				if (!errorText.equals("")) {
+					this.textArea.setText(errorText);
 				}
 			}
 
 		}
 
-		if (actionCommand == "GET PINS") {
+		else if (actionCommand == "GET PINS") {
 			// grab pins from server
 			commandString = "GET PINS";
+			try {
+				request(commandString);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				errorText = "Sudden error in input";
+				e1.printStackTrace();
+			}
 
-		}
-		if (actionCommand == "PIN/UNPIN") {
+		} else if (actionCommand == "PIN") {
 			if (pinxInput.getText().equals("") || pinyInput.getText().equals("")) {
 				errorText = "Please enter both coordinates";
 
 			} else {
 				try {
-					commandString = "PIN/UNPIN";
+					commandString = "PIN";
+
 					int x = Integer.parseInt(pinxInput.getText());
 					int y = Integer.parseInt(pinyInput.getText());
 
-					commandString += " " + x + " " + y;
+					if (x > this.boardSize[0] || y > this.boardSize[1]) {
+						errorText = "Pin is out of bounds";
+					}
+
+					commandString += " " + x + "," + y;
+					request(commandString);
 				} catch (NumberFormatException nfe) {
 					errorText = "Please enter integer values";
+				} catch (IOException ioe) {
+					errorText = "Please view console for error";
+					ioe.printStackTrace();
 				}
+				if (!errorText.equals("")) {
+					this.textArea.setText(errorText);
+				}
+			}
+		} else if (actionCommand == "UNPIN") {
+			try {
+				commandString = "UNPIN";
+				int x = Integer.parseInt(pinxInput.getText());
+				int y = Integer.parseInt(pinyInput.getText());
+
+				if (x > this.boardSize[0] || y > this.boardSize[1]) {
+					errorText = "unpin is out of bounds";
+				}
+
+				commandString += " " + x + "," + y;
+				request(commandString);
+			} catch (NumberFormatException nfe) {
+				errorText = "Please enter integer values";
+			} catch (IOException ioe) {
+				errorText = "Please view console for error";
+				ioe.printStackTrace();
+			}
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
 			}
 		}
 
-		if (actionCommand == "CLEAR") {
+		else if (actionCommand == "CLEAR") {
+
 			commandString = "CLEAR";
-		}
-
-		// this.textArea.setText(errorText + "\nCommand: " + commandString);
-
-		// if (socket == null) {
-		// this.textArea.setText("No connection made");
-		// }
-		if (errorText.equals("")) {
-			commandString = ""; // free memory from command string
-			this.textArea.setText(errorText + "\nCommand: " + commandString);
-
 			try {
 				request(commandString);
 			} catch (IOException e1) {
 				// TODO Auto-generated catch block
+				errorText = "Please view console for error";
 				e1.printStackTrace();
 			}
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
+			}
 		}
+
+		// if (socket == null) {
+		// this.textArea.setText("No connection made");
+		// }
+		// if (errorText.equals("")) {
+		// commandString = ""; // free memory from command string
+		// this.textArea.setText(errorText + "\nCommand: " + commandString);
+		//
+		// try {
+		// request(commandString);
+		// } catch (IOException e1) {
+		// // TODO Auto-generated catch block
+		// e1.printStackTrace();
+		// }
+		// }
 
 		// }
 
@@ -387,25 +465,26 @@ public class NotesClient extends JFrame implements ActionListener {
 
 			System.out.println(response);
 
+			int clientNo = Integer.parseInt(responseArr[0]);
 			// declare array for boardSize {width, height}
 			this.boardSize = new int[2];
-			boardSize[0] = Integer.parseInt(responseArr[0]);
-			boardSize[1] = Integer.parseInt(responseArr[1]);
+			boardSize[0] = Integer.parseInt(responseArr[1]);
+			boardSize[1] = Integer.parseInt(responseArr[2]);
 			// declare array of colors
-			this.colors = new String[responseArr.length - 2];
+			this.colors = new String[responseArr.length - 3];
 
-			displayText = "Welcome to the Notes Server! \nBoard Width: " + responseArr[0] + "\nBoard Height: "
-					+ responseArr[1] + "\nColors Available: ";
+			displayText = "Welcome to the Notes Server! You are client #" + clientNo + " \nBoard Width: "
+					+ responseArr[1] + "\nBoard Height: " + responseArr[2] + "\nColors Available: ";
 
-			for (int i = 2; i < responseArr.length; i++) {
+			for (int i = 3; i < responseArr.length; i++) {
 				displayText += responseArr[i] + " ";
-				this.colors[i - 2] = responseArr[i];
+				this.colors[i - 3] = responseArr[i];
 			}
 
 			this.cnnButton.setText("DISCONNECT");
 			this.textArea.setText(displayText);
 		} catch (Exception e) {
-			this.textArea.setText("Connection Error. Please see console.");
+			this.textArea.setText("IP address or port number invalid. Look at console.");
 			e.printStackTrace();
 		}
 
@@ -419,38 +498,49 @@ public class NotesClient extends JFrame implements ActionListener {
 		try {
 			this.socket.close();
 		} catch (Exception e) {
-			this.textArea.setText("Error. Please see console.");
+			this.textArea.setText("Disconnect error. Please see console.");
 			e.printStackTrace();
 		}
 
 	}
 
 	public void request(String command) throws IOException {
-		String[] com = command.split(" ");
-		String req = com[0];
-		try {
-			this.out.writeUTF(command);
-			System.out.println(command);
-			String response = this.in.readUTF();
+		if (errorText.equals("")) {
+			String[] com = command.split(" ");
+			String req = com[0];
+			try {
+				System.out.println("command:" + command);
+				this.out.writeUTF(command);
+				String response = this.in.readUTF();
 
-			if (req.equals("GET") || req.equals("POST") || req.equals("PIN/UNPIN") || req.equals("GET PINS")
-					|| req.equals("CLEAR")) {
-				// this get request will print the details (color, coordinates,
-				// pin
-				// status, message) of the notes as per request
-				textArea.setText(response);
-			} else {
+				if (req.equals("GET") || req.equals("POST") || req.equals("UNPIN") || req.equals("PIN")
+						|| req.equals("GET PINS") || req.equals("CLEAR")) {
+					// this get request will print the details (color,
+					// coordinates,
+					// pin
+					// status, message) of the notes as per request
+					textArea.setText(response);
+				} else {
+					textArea.setText("Unable to process request " + req);
+				}
+			} catch (IOException io) {
 				textArea.setText("Unable to process request " + req);
+				io.printStackTrace();
 			}
-		} catch (IOException io) {
-			textArea.setText("Unable to process request " + req);
+		} else {
+			textArea.setText(errorText);
 		}
 
+	}
+
+	public void windowClosing(WindowEvent e) throws IOException {
+		socket.close();
 	}
 
 	public static void main(String[] args) {
 		NotesClient window = new NotesClient();
 		window.setVisible(true);
+
 	}
 
 }
