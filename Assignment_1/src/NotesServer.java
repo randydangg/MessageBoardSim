@@ -167,9 +167,10 @@ public class NotesServer {
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == true && getCoordinate == true && getReference == false) {
@@ -184,9 +185,10 @@ public class NotesServer {
 											&& chosen_y <= up_y_bound) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == true && getCoordinate == false && getReference == true) {
@@ -198,9 +200,10 @@ public class NotesServer {
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == true && getCoordinate == false && getReference == false) {
@@ -210,9 +213,10 @@ public class NotesServer {
 									if (NOTES.elementAt(a).color.equals(chosen_color)) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == false && getCoordinate == true && getReference == true) {
@@ -227,9 +231,10 @@ public class NotesServer {
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == false && getCoordinate == true && getReference == false) {
@@ -243,9 +248,10 @@ public class NotesServer {
 											&& chosen_y <= up_y_bound) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							} else if (getColor == false && getCoordinate == false && getReference == true) {
@@ -254,9 +260,10 @@ public class NotesServer {
 									if (NOTES.elementAt(a).message.contains(reference_str)) {
 										// store the desired note as one big
 										// string
-										output_notes = output_notes + NOTES.elementAt(a).color + " Note at: ("
-												+ NOTES.elementAt(a).x_pos + ", " + NOTES.elementAt(a).y_pos + ") "
-												+ NOTES.elementAt(a).message + "\n";
+										output_notes = output_notes + NOTES.elementAt(a).status + " "
+												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
+												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
+												+ "\n";
 									}
 								}
 							}
@@ -320,6 +327,7 @@ public class NotesServer {
 						int temp_x = Integer.parseInt(index_split[0]);
 						int temp_y = Integer.parseInt(index_split[1]);
 						boolean hasPinNotes = false;
+						boolean remove_note = false;
 						boolean hasPin = false;
 
 						for (int i = 0; i < PINS.size(); i++) {
@@ -345,11 +353,14 @@ public class NotesServer {
 
 								if (lower_x_bound <= temp_x && temp_x <= upper_x_bound && lower_y_bound <= temp_y
 										&& temp_y <= upper_y_bound) {
+									System.out.println("Note: " + NOTES.elementAt(i).x_pos + " "
+											+ NOTES.elementAt(i).y_pos + " is being unpinned");
 									// check if the current note is located in
 									// the
 									// range of the pin location
 									// if so, we have to check if the note has
 									// another pin on it
+									remove_note = true;
 									for (int j = 0; j < PINS.size(); j++) {
 										if (lower_x_bound <= PINS.elementAt(j).x && PINS.elementAt(j).x <= upper_x_bound
 												&& lower_y_bound <= PINS.elementAt(j).y
@@ -360,7 +371,8 @@ public class NotesServer {
 										}
 									}
 								}
-								if (hasPinNotes == false) {
+								if (hasPinNotes == false && remove_note == true) {
+									remove_note = false;
 									NOTES.elementAt(i).status = 0; // the
 																	// current
 																	// note has
@@ -372,8 +384,9 @@ public class NotesServer {
 																	// status to
 																	// unpinned
 								} else if (hasPinNotes == true) {
-									hasPinNotes = false; // if the current note
-															// has
+									hasPinNotes = false; // if the current
+									// note
+									// has
 									// another pin, re initialize
 									// the hasPin variable
 								}
