@@ -41,8 +41,6 @@ public class NotesClient extends JFrame implements ActionListener {
 	private Socket socket = null;
 	private DataInputStream in = null; // in.readUTF
 	private DataOutputStream out = null; // out.writeUTF
-	// private BufferedReader in;
-	// private PrintWriter out;
 
 	/* Variables needed on first connection */
 	private String[] colors = { "GREEN", "YELLOW", "BLUE" }; // CHANGE TO NULL
@@ -67,7 +65,7 @@ public class NotesClient extends JFrame implements ActionListener {
 		JPanel clearPanel = new JPanel();
 
 		mainPanel.setLayout(new GridLayout(7, 1));
-		// postPanel.setLayout(new BorderLayout());
+
 		/* Labels */
 		JLabel ipLabel = new JLabel("IP Address");
 		JLabel portLabel = new JLabel("Port Number");
@@ -98,21 +96,13 @@ public class NotesClient extends JFrame implements ActionListener {
 		postButton.addActionListener(this);
 		clearButton.addActionListener(this);
 
-		/* alignment */
-		// postLabel.setAlignmentX(LEFT_ALIGNMENT);
-		// postInput.setAlignmentX(LEFT_ALIGNMENT);
-		// postButton.setAlignmentX(LEFT_ALIGNMENT);
-
 		/* Result box */
 		this.textArea.setEditable(false);
 		this.textArea.setWrapStyleWord(true);
-		// this.scrollPane.setViewportView(arg0);
 		this.scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		// this.scrollPane.setVerticalScrollBar(new JScrollBar());
 
 		/* add to window panel */
-
 		cnnPanel.add(ipLabel);
 		cnnPanel.add(ipInput);
 		cnnPanel.add(portLabel);
@@ -161,14 +151,17 @@ public class NotesClient extends JFrame implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		/*
+		 * Listener for all the button actions. This function handles errors and
+		 * displays error messages. If no error is detected, then the request
+		 * function will be ran.
+		 */
 		errorText = ""; // error text that may show up. if errortext
 						// exists, no action will be executed
 		String actionCommand = e.getActionCommand();
 		String commandString = ""; // string to be sent to the server
 		String postColor = "";
 		boolean hasColor = false;
-
-		System.out.println(actionCommand);
 
 		if (actionCommand == "CONNECT") {
 			if (ipInput.getText().equals("") || portInput.getText().equals("")) {
@@ -177,7 +170,6 @@ public class NotesClient extends JFrame implements ActionListener {
 				String ipAddress = ipInput.getText();
 				try {
 					int port = Integer.parseInt(portInput.getText());
-					// System.out.println(ipAddress + port);
 					connect(ipAddress, port);
 				} catch (NumberFormatException nfe) {
 					errorText = "Please enter an integer for Port Number";
@@ -199,7 +191,6 @@ public class NotesClient extends JFrame implements ActionListener {
 			try {
 				disconnect();
 			} catch (Exception excep) {
-				// TODO Auto-generated catch block
 				this.textArea.setText("Error. Please see console.");
 				excep.printStackTrace();
 			}
@@ -343,7 +334,6 @@ public class NotesClient extends JFrame implements ActionListener {
 			try {
 				request(commandString);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				errorText = "Sudden error in input";
 				e1.printStackTrace();
 			}
@@ -409,7 +399,6 @@ public class NotesClient extends JFrame implements ActionListener {
 			try {
 				request(commandString);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				errorText = "Please view console for error";
 				e1.printStackTrace();
 			}
@@ -418,47 +407,12 @@ public class NotesClient extends JFrame implements ActionListener {
 			}
 		}
 
-		// if (socket == null) {
-		// this.textArea.setText("No connection made");
-		// }
-		// if (errorText.equals("")) {
-		// commandString = ""; // free memory from command string
-		// this.textArea.setText(errorText + "\nCommand: " + commandString);
-		//
-		// try {
-		// request(commandString);
-		// } catch (IOException e1) {
-		// // TODO Auto-generated catch block
-		// e1.printStackTrace();
-		// }
-		// }
-
-		// }
-
-	}
-
-	public void test() {
-		String response = "800 600 red blue yellow green";
-
-		String displayText;
-		String[] responseArr = response.split(" ");
-		this.colors = new String[responseArr.length - 2];
-
-		displayText = "Welcome to the Notes Server! \nBoard Width: " + responseArr[0] + "\nBoard Height: "
-				+ responseArr[1] + "\nColors Available: ";
-
-		for (int i = 2; i < responseArr.length; i++) {
-			displayText += responseArr[i] + " ";
-			colors[i - 2] = responseArr[i];
-		}
-		System.out.println("Display text: " + displayText);
-		this.textArea.setText(displayText);
-		this.cnnButton.setText("DISCONNECT");
-
 	}
 
 	public void connect(String address, int port) throws Exception {
-		// new socket to connect to server
+		/*
+		 * Client creates a connection to the server
+		 */
 		String displayText;
 		try {
 			this.socket = new Socket(address, port);
@@ -466,13 +420,10 @@ public class NotesClient extends JFrame implements ActionListener {
 			this.in = new DataInputStream(socket.getInputStream());
 			this.out = new DataOutputStream(socket.getOutputStream());
 			// first line from server should be a string specifying board
-			// dimensions
-			// and colors of note
+			// dimensions and colors of note
 			String response = in.readUTF();
 			String[] responseArr = response.split(" "); // split into array
 														// string
-
-			System.out.println(response);
 
 			int clientNo = Integer.parseInt(responseArr[0]);
 			// declare array for boardSize {width, height}
@@ -493,41 +444,45 @@ public class NotesClient extends JFrame implements ActionListener {
 			this.cnnButton.setText("DISCONNECT");
 			this.textArea.setText(displayText);
 		} catch (Exception e) {
-			this.textArea.setText("IP address or port number invalid. Look at console.");
+			this.textArea.setText("Problem with connection. Refer to console.");
 			e.printStackTrace();
 		}
-
-		// send a message to the server // out.println(message)
-		// get response //String response = in.readLine();
 	}
 
 	public void disconnect() throws Exception {
+		/*
+		 * Client disconnects with the server.
+		 */
+		// change button text so that user can toggle connection
 		this.cnnButton.setText("CONNECT");
+		// send message to server
 		out.writeUTF("DISCONNECT");
 		try {
 			this.socket.close();
 		} catch (Exception e) {
-			this.textArea.setText("Disconnect error. Please see console.");
+			this.textArea.setText("Disconnect error. Refer to console.");
 			e.printStackTrace();
 		}
 
 	}
 
 	public void request(String command) throws IOException {
+		/*
+		 * This sends the request to the server. However, if an error string
+		 * exists, then the request can't execute.
+		 */
 		if (errorText.equals("")) {
 			String[] com = command.split(" ");
 			String req = com[0];
 			try {
-				System.out.println("command:" + command);
 				this.out.writeUTF(command);
 				String response = this.in.readUTF();
 
 				if (req.equals("GET") || req.equals("POST") || req.equals("UNPIN") || req.equals("PIN")
 						|| req.equals("GET PINS") || req.equals("CLEAR")) {
 					// this get request will print the details (color,
-					// coordinates,
-					// pin
-					// status, message) of the notes as per request
+					// coordinates pin status, message) of the notes as per
+					// request
 					textArea.setText(response);
 				} else {
 					textArea.setText("Unable to process request " + req);
@@ -537,16 +492,23 @@ public class NotesClient extends JFrame implements ActionListener {
 				io.printStackTrace();
 			}
 		} else {
+			// do not execute requests, just post error to gui
 			textArea.setText(errorText);
 		}
 
 	}
 
 	public void windowClosing(WindowEvent e) throws IOException {
+		/*
+		 * When client exits the window, their connection is closed
+		 */
 		socket.close();
 	}
 
 	public static void main(String[] args) {
+		/*
+		 * Launch GUI
+		 */
 		NotesClient window = new NotesClient();
 		window.setVisible(true);
 
