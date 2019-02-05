@@ -188,9 +188,10 @@ public class NotesClient extends JFrame implements ActionListener {
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
-				if (!errorText.equals("")) {
-					this.textArea.setText(errorText);
-				}
+
+			}
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
 			}
 		}
 
@@ -270,9 +271,11 @@ public class NotesClient extends JFrame implements ActionListener {
 				} catch (IOException ioe) {
 					errorText = "Sudden Error in input";
 				}
-				if (!errorText.equals("")) {
-					this.textArea.setText(errorText);
-				}
+
+			}
+
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
 			}
 		}
 
@@ -326,9 +329,10 @@ public class NotesClient extends JFrame implements ActionListener {
 				} catch (IOException ioe) {
 					errorText = "Sudden Error in input";
 				}
-				if (!errorText.equals("")) {
-					this.textArea.setText(errorText);
-				}
+
+			}
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
 			}
 
 		}
@@ -367,27 +371,32 @@ public class NotesClient extends JFrame implements ActionListener {
 					errorText = "Please view console for error";
 					ioe.printStackTrace();
 				}
-				if (!errorText.equals("")) {
-					this.textArea.setText(errorText);
-				}
+
+			}
+			if (!errorText.equals("")) {
+				this.textArea.setText(errorText);
 			}
 		} else if (actionCommand == "UNPIN") {
-			try {
-				commandString = "UNPIN";
-				int x = Integer.parseInt(pinxInput.getText());
-				int y = Integer.parseInt(pinyInput.getText());
+			if (pinxInput.getText().equals("") || pinyInput.getText().equals("")) {
+				errorText = "Please enter both coordinates";
+			} else {
+				try {
+					commandString = "UNPIN";
+					int x = Integer.parseInt(pinxInput.getText());
+					int y = Integer.parseInt(pinyInput.getText());
 
-				if (x > this.boardSize[0] || y > this.boardSize[1]) {
-					errorText = "unpin is out of bounds";
+					if (x > this.boardSize[0] || y > this.boardSize[1]) {
+						errorText = "unpin is out of bounds";
+					}
+
+					commandString += " " + x + "," + y;
+					request(commandString);
+				} catch (NumberFormatException nfe) {
+					errorText = "Please enter integer values";
+				} catch (IOException ioe) {
+					errorText = "Please view console for error";
+					ioe.printStackTrace();
 				}
-
-				commandString += " " + x + "," + y;
-				request(commandString);
-			} catch (NumberFormatException nfe) {
-				errorText = "Please enter integer values";
-			} catch (IOException ioe) {
-				errorText = "Please view console for error";
-				ioe.printStackTrace();
 			}
 			if (!errorText.equals("")) {
 				this.textArea.setText(errorText);
