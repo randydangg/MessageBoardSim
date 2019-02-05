@@ -50,10 +50,6 @@ public class NotesServer {
 		int clientNumber;
 		String command; // this will be client command
 		String splitCommand[];
-		// BufferedReader input;
-		// PrintWriter output;
-		// might have to use data stream classes to better handle the long
-		// strings, only problem is that it keeps throwing an exception
 		DataInputStream input;
 		DataOutputStream output;
 
@@ -68,17 +64,11 @@ public class NotesServer {
 		@Override
 		public void run() {
 			try {
-				// input = new BufferedReader(new
-				// InputStreamReader(socket.getInputStream()));
 				input = new DataInputStream(socket.getInputStream());
-				// output = new PrintWriter(socket.getOutputStream(), true);
 				output = new DataOutputStream(socket.getOutputStream());
-				// output.println("Connection with client# " + clientNumber + "
-				// is successful, welcome!");
 				output.writeUTF(clientNumber + " " + BOARD_WIDTH + " " + BOARD_HEIGHT + " " + COLOR_LIST + "\n");
 
 				while (true) {
-					// command = input.readLine();
 					command = input.readUTF();
 					splitCommand = command.split(" "); // split the command into
 														// tokens
@@ -103,13 +93,9 @@ public class NotesServer {
 						// create a new note with data above and store in Vector
 						Note note = new Note(x_pos, y_pos, width, height, color, message, 0);
 						NOTES.add(note);
-						// output.println("Note is successfully posted!");
 						output.writeUTF("Note is successfully posted!");
-						// output.writeUTF(note.x_pos + " " + note.color + " " +
-						// note.message);
 					} else if (command.startsWith("GET")) { // if client wants
 															// to GET
-						System.out.println("ATTEMPTING A GET REQUEST!");
 						String output_notes = ""; // this will be the string of
 													// notes that is sent to the
 													// client
@@ -120,11 +106,8 @@ public class NotesServer {
 								all_coordinates = all_coordinates + "(" + PINS.get(i).x + ", " + PINS.get(i).y + ") \n";
 							}
 							if (all_coordinates.equals("")) {
-								// output.println("There are currently no PINs
-								// on the board");
 								output.writeUTF("There are currently no relevant PINs on the board");
 							} else {
-								// output.println(all_coordinates);
 								output.writeUTF(all_coordinates);
 							}
 						} else {
@@ -147,7 +130,6 @@ public class NotesServer {
 									chosen_y = Integer.parseInt(splitCommand[i + 2]);
 									getCoordinate = true;
 								} else if (splitCommand[i].contains("refersTo")) {
-									// get the string after the "="
 									reference_str = splitCommand[i].substring(splitCommand[i].indexOf("=") + 1);
 									getReference = true;
 								}
@@ -165,8 +147,6 @@ public class NotesServer {
 											&& chosen_x <= up_x_bound && low_y_bound <= chosen_y
 											&& chosen_y <= up_y_bound
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -183,8 +163,6 @@ public class NotesServer {
 									if (NOTES.elementAt(a).color.equals(chosen_color) && low_x_bound <= chosen_x
 											&& chosen_x <= up_x_bound && low_y_bound <= chosen_y
 											&& chosen_y <= up_y_bound) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -193,13 +171,9 @@ public class NotesServer {
 								}
 							} else if (getColor == true && getCoordinate == false && getReference == true) {
 								// requesting color and reference
-								// output.writeUTF("requesting color and
-								// reference!");
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).color.equals(chosen_color)
 											&& NOTES.elementAt(a).message.contains(reference_str)) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -211,8 +185,6 @@ public class NotesServer {
 								// output.writeUTF("requesting color");
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).color.equals(chosen_color)) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -228,9 +200,7 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (low_x_bound <= chosen_x && chosen_x <= up_x_bound && low_y_bound <= chosen_y
 											&& chosen_y <= up_y_bound
-											&& NOTES.elementAt(a).message.contains(reference_str)) {
-										// store the desired note as one big
-										// string
+											&& NOTES.elementAt(a).message.contains(reference_str)) {									
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -246,8 +216,6 @@ public class NotesServer {
 									int up_y_bound = NOTES.elementAt(a).y_pos + NOTES.elementAt(a).height;
 									if (low_x_bound <= chosen_x && chosen_x <= up_x_bound && low_y_bound <= chosen_y
 											&& chosen_y <= up_y_bound) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -258,8 +226,6 @@ public class NotesServer {
 								// requesting only reference
 								for (int a = 0; a < NOTES.size(); a++) {
 									if (NOTES.elementAt(a).message.contains(reference_str)) {
-										// store the desired note as one big
-										// string
 										output_notes = output_notes + NOTES.elementAt(a).status + " "
 												+ NOTES.elementAt(a).color + " Note at: (" + NOTES.elementAt(a).x_pos
 												+ ", " + NOTES.elementAt(a).y_pos + ") " + NOTES.elementAt(a).message
@@ -269,12 +235,8 @@ public class NotesServer {
 							}
 
 							if (output_notes.equals("") && splitCommand[1] != "PINS") {
-								// couldnt fulfill the request made
-								// output.println("There are no notes satisfying
-								// your request!");
 								output.writeUTF("There are no notes satisfying your request!");
 							} else {
-								// output.println(output_notes);
 								output.writeUTF(output_notes);
 							}
 						}
@@ -297,8 +259,6 @@ public class NotesServer {
 						if (pinned) {
 							Pin pin = new Pin(temp_x, temp_y);
 							PINS.add(pin);
-							// output.println("Pin is successfully pinned!");
-							System.out.println(pin.x + " " + pin.y);
 							output.writeUTF("Pin is successfully pinned!");
 							for (int i = 0; i < NOTES.size(); i++) {
 								// check if there are notes in the position of
@@ -343,9 +303,6 @@ public class NotesServer {
 							output.writeUTF("There is no pin to unpin at this location");
 						} else {
 							for (int i = 0; i < NOTES.size(); i++) {
-								// check if there are notes in the position of
-								// the
-								// requested pin location
 								int lower_x_bound = NOTES.elementAt(i).x_pos;
 								int upper_x_bound = NOTES.elementAt(i).x_pos + NOTES.elementAt(i).width;
 								int lower_y_bound = NOTES.elementAt(i).y_pos;
@@ -373,22 +330,9 @@ public class NotesServer {
 								}
 								if (hasPinNotes == false && remove_note == true) {
 									remove_note = false;
-									NOTES.elementAt(i).status = 0; // the
-																	// current
-																	// note has
-																	// no
-																	// other pin
-																	// on
-																	// it, so
-																	// change
-																	// status to
-																	// unpinned
+									NOTES.elementAt(i).status = 0; 
 								} else if (hasPinNotes == true) {
-									hasPinNotes = false; // if the current
-									// note
-									// has
-									// another pin, re initialize
-									// the hasPin variable
+									hasPinNotes = false; 
 								}
 							}
 							output.writeUTF("Unpin request is successful");
@@ -396,14 +340,16 @@ public class NotesServer {
 
 					} else if (command.startsWith("CLEAR")) { // if client wants
 																// to CLEAR
+						ArrayList<Integer> temp_storage = new ArrayList<Integer>(); 
 						for (int i = 0; i < NOTES.size(); i++) {
 							if (NOTES.elementAt(i).status == 0) {
 								// any unpinned notes will be removed
-								NOTES.removeElementAt(i);
+								temp_storage.add(i);
 							}
 						}
-						// output.println("All unpinned notes have been
-						// cleared");
+						for (int j = temp_storage.size()-1; j >= 0; j--) {
+							NOTES.removeElementAt(temp_storage.get(j));
+						}
 						output.writeUTF("All unpinned notes have been cleared");
 					} else if (command.equals("DISCONNECT")) { // if client
 																// wants to
