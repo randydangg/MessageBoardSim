@@ -28,7 +28,7 @@ The Server must:
 	- 4. If message is UNPIN, server must unpin all relevant notes 
 	- 5. If message is CLEAR, server must erase all notes which are unpinned  
 	- 6. If message is DISCONNECT, server will disconnect from the requesting client 
-###Client Specifications
+### Client Specifications
 The Client is presented as a GUI where users can input their requests to post notes, remove them, or get existing notes from the server. 
 
 <img src="clientGUI.png" alt="Client GUI" height="50%" width="50%">
@@ -48,7 +48,7 @@ The Client GUI consists of the following fields:
  - A CLEAR button to remove notes that are unpinned 
  - Text field to display result of request
 
-###Server Specifications
+### Server Specifications
 The Server is a multithreaded Java application that has multiple command line arguments and starts with an empty dictionary of "notes". The arguments are as follows: 
 
 {Port Number}, {Board Width}, {Board Height}, {Default Colour}, {Colour 2}, ..., {Colour n}
@@ -59,28 +59,28 @@ The above command will accept connections on Port number 4554, supporting the bo
 
 Every new Client that is connected to the Server will receive a list of available colours to post notes with and the dimension of the board. The Client then has to make sure that requests from Client side satisfies the given parameters (For details on error handling, please refer to RFC document). 
 
-###Sample Results
-####Initial connection 
+### Sample Results
+#### Initial connection 
 <img src="welcome.png" alt="Welcome" height="50%" width="50%">
 
 Upon initial connection, the Server provides the Client with its Client number, the board width, height, and available note colours.
 
-####POST example 
+#### POST example 
 <img src="POST.png" alt="POST Sample" height="50%" width="50%">
 
 The above shows a POST sample, providing the Server with the command "POST 50 50 5 5 red Hello World". This command tells the Server that the note is to be placed at location (50, 50) on the board, with the note size being 5 units wide and 5 units tall, the colour of the note being red and its message being "Hello World". If the POST request satisfies Server conditions, the text field at the bottom will provide the Client with a success message. 
 
-####GET Example
+#### GET Example
 <img src="GET.png" alt="GET Sample" height="50%" width="50%">
 
 The above shows a GET sample, providing the Server with the command "GET colour=red refersTo=World". This command tells the Server that the Client is requesting a note that is red and contains the sub-string "World" in its message. The resultant note will be provided to the Client in its bottom text field. 
 
-####PIN Example 
+#### PIN Example 
 <img src="PIN.png" alt="PIN Sample" height="50%" width="50%">
 
 The above shows a PIN sample, providing the Server with the command "PIN 51 51". This command will tell the server to place a pin at location (51, 51) on the board. Any notes that fall in that location will have its status as pinned.
 
-####GETPINS Example 
+#### GETPINS Example 
 <img src="GETPINS.png" alt="GETPINS Sample" height="50%" width="50%">
 
 The above shows a GETPINS sample, sending a request to the server to provide the Client with the location of all the existing pins on the board. 
